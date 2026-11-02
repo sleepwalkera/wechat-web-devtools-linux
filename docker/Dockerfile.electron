@@ -1,7 +1,6 @@
 FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG TARGETARCH
 
 WORKDIR /workspace
 
@@ -34,17 +33,6 @@ RUN apt-get update && \
         --slave /usr/bin/g++ g++ /usr/bin/g++-10 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN case "$TARGETARCH" in \
-        amd64) seven_zip_arch=x64 ;; \
-        arm64) seven_zip_arch=arm64 ;; \
-        *) echo "Unsupported build architecture: $TARGETARCH" >&2; exit 1 ;; \
-    esac && \
-    mkdir -p /opt/7z && \
-    wget -q "https://www.7-zip.org/a/7z2600-linux-${seven_zip_arch}.tar.xz" -O /tmp/7z.tar.xz && \
-    tar -xJf /tmp/7z.tar.xz -C /opt/7z && \
-    ln -s 7zz /opt/7z/7z && \
-    rm /tmp/7z.tar.xz
-
 # 为构建环境提供 Node.js 和 npm，不依赖工作区中的 node/ 目录。
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x -o /tmp/nodesource-setup.sh && \
     bash /tmp/nodesource-setup.sh && \
@@ -52,5 +40,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x -o /tmp/nodesource-setup.sh
     rm -f /tmp/nodesource-setup.sh && \
     rm -rf /var/lib/apt/lists/*
 
-ENV PATH=/opt/7z:$PATH
+# 注意：7z 由上方 apt 安装的 p7zip-full 提供（/usr/bin/7z），
+# 不再从 www.7-zip.org 下载 —— 该站点会屏蔽 GitHub Actions 等云厂商 IP，
+# 导致 CI 上 wget 失败（win32 exe 的解包依赖此工具）。
 RUN node --version && npm --version && npx --version
