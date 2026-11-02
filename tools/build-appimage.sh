@@ -101,10 +101,27 @@ cp -a "$root_dir/resources" "$app_dir/resources"
 # 清理旧构建遗留的 Node，运行时由 bin/node 使用 Electron 提供。
 rm -f "$app_dir/electron/node" "$app_dir/electron/node.exe" "$app_dir/electron/node-18.exe"
 
+# 打包策略：只保留与目标架构一致的 ELF。依赖包会带入固定架构的原生件
+# （如 skyline-addon/bundle/libapp.so、bin/adb-win/lib64/libc++.so 为 x86_64），
+# 它们在本架构上无法加载，属死重，也会让 appimagetool 误判 AppDir 为多架构。
+notice "REMOVE FOREIGN-ARCH ELF ($appimagetool_arch)"
+if command -v file >/dev/null 2>&1; then
+  find "$app_dir" -type f -print0 | xargs -0 -r file 2>/dev/null | grep 'ELF' > "$tmp_dir/appimage-elf.txt" || true
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    elf_file="${line%%:*}"
+    if [ "$appimagetool_arch" = "x86_64" ]; then
+      case "$line" in *"ARM aarch64"*) rm -f "$elf_file"; echo "  removed: $elf_file" ;; esac
+    else
+      case "$line" in *"x86-64"*) rm -f "$elf_file"; echo "  removed: $elf_file" ;; esac
+    fi
+  done < "$tmp_dir/appimage-elf.txt"
+  rm -f "$tmp_dir/appimage-elf.txt"
+fi
+
 # appimagetool $app_dir
 notice "MAKE APPIMAGE"
-# 显式传 ARCH：AppDir 中可能混入固定架构的依赖二进制（如 skyline-addon 的 x86_64 .so），
-# appimagetool 自动探测会误判为多架构；ARCH 取值为其认可的 x86_64 / aarch64。
+# 额外显式传 ARCH，作为对 appimagetool 架构判定的兜底（取值为其认可的 x86_64 / aarch64）。
 ARCH="$appimagetool_arch" APPIMAGE_EXTRACT_AND_RUN=1 "$appimagetool" \
   "$app_dir" "$build_dir/WeChat_Dev_Tools_${VERSION}_${ARCH}_${TYPE}.AppImage"
 
