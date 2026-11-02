@@ -152,6 +152,10 @@
 > 实验性功能，有问题请建立issue进行反馈，谢谢。
 > 已知问题：https://github.com/msojocs/skyline-client-server/issues
 
+> [!NOTE]
+> arm64(aarch64)：上游缺少 arm64 的 Skyline 运行时（Flutter 渲染器 `libapp.so` 仅有 x86_64），
+> 因此 arm64 构建不支持 Skyline（其余功能不受影响）。
+
 ```shell
 docker run -d \
     --network host \

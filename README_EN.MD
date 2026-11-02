@@ -147,6 +147,10 @@ Start the server, wait a while for it to initialize, then click Compile in the D
 > Experimental feature; please open an issue for any problems. Thanks.
 > Known issues: https://github.com/msojocs/skyline-client-server/issues
 
+> [!NOTE]
+> arm64 (aarch64): there is no upstream Skyline runtime for arm64 (the Flutter renderer
+> `libapp.so` is x86_64 only), so Skyline is not supported in arm64 builds (other features are unaffected).
+
 ```shell
 docker run -d \
     --network host \
