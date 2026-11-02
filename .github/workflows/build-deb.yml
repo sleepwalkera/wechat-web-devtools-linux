@@ -23,6 +23,9 @@ jobs:
           node-version: 22.x
       - name: Download artifacts
         uses: actions/download-artifact@v4
+        with:
+          # 只取本架构的构建产物，内容直接解到工作区根目录
+          name: wechat-devtools-${{ matrix.ARCH }}.src
 
       - name: Generate TAG
         id: tag

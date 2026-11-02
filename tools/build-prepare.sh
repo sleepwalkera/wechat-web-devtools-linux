@@ -20,8 +20,9 @@ tmp_dir="$root_dir/tmp"
 store_dir="$tmp_dir/build"
 mkdir -p $store_dir
 rm -rf electron resources
+# CI 用 actions/download-artifact(name:) 把本架构的 src-linux.tar.gz 解到工作区根目录
 if [[ "$WINE" != 'true' ]];then
-  tar -zxf wechat-devtools-*.src/src-linux.tar.gz -C .
+  tar -zxf src-linux.tar.gz -C .
 else
-  tar -zxf wechat-devtools-*.src/src-wine.tar.gz -C .
+  tar -zxf src-wine.tar.gz -C .
 fi
