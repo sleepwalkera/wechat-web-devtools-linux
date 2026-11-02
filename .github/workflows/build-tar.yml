@@ -64,10 +64,19 @@ jobs:
         run: |
           ls -l
 
-      - name: Upload artifact
+      # AppImage 与 tar.gz 分开上传，便于按需只下载其一（避免每次都拖 500MB+）
+      - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wechat-devtools-simple-${{ matrix.ARCH }}.build
-          path: tmp/build
+          name: wechat-devtools-appimage-${{ matrix.ARCH }}.build
+          path: tmp/build/*.AppImage
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload tar.gz artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wechat-devtools-targz-${{ matrix.ARCH }}.build
+          path: tmp/build/*.tar.gz
           if-no-files-found: error
           compression-level: 0
