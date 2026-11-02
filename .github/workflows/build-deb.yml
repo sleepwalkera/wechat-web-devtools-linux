@@ -12,6 +12,10 @@ jobs:
       matrix:
         ARCH: ['x86_64']
 
+    # 供下方 Configure GPG Key 步骤的 if 条件使用（job 级 env 才能在 step.if 中引用）
+    env:
+      GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,12 +44,12 @@ jobs:
       # gpg --export-secret-keys YOUR_ID_HERE | base64 > private.key
       - name: Configure GPG Key
         id: gpg
+        # fork / 无密钥环境跳过签名，deb 仍可正常构建（build-deepin.sh 会走 -us -uc）
+        if: env.GPG_SIGNING_KEY != ''
         run: |
           echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
           gpg --list-secret-keys jiyecafe@gmail.com
           echo "sign=true" >> "$GITHUB_OUTPUT"
-        env:
-          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
 
       - name: Prepare
         run: |
